@@ -18,7 +18,7 @@ Robust `yt-dlp` wrapper for **PHP 8.4** with a ready-to-use **Symfony 7 bundle**
 ## 📦 Install
 
 ```bash
-composer require p3s/php-ytdlp-wrapper
+composer require p3sdev/php-ytdlp-wrapper
 ```
 
 ## 🧩 Symfony 7 Bundle Setup

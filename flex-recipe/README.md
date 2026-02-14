@@ -15,11 +15,11 @@ This directory contains a ready-to-submit recipe scaffold for Symfony Flex.
 
 1. Fork `symfony/recipes-contrib`.
 2. Copy the `1.0` directory to:
-   `p3s/php-ytdlp-wrapper/1.0/`
+   `p3sdev/php-ytdlp-wrapper/1.0/`
 3. Open a pull request to `symfony/recipes-contrib`.
 
 After merge, Symfony Flex will auto-enable `P3s\\YtDlp\\YtDlpBundle` and install default config when users run:
 
 ```bash
-composer require p3s/php-ytdlp-wrapper
+composer require p3sdev/php-ytdlp-wrapper
 ```

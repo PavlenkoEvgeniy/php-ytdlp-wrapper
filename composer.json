@@ -1,5 +1,5 @@
 {
-    "name": "p3s/php-ytdlp-wrapper",
+    "name": "p3sdev/php-ytdlp-wrapper",
     "description": "Robust PHP 8.4 yt-dlp wrapper with Symfony 7 bundle integration",
     "keywords": [
         "php",
