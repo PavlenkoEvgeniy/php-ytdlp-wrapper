@@ -1,8 +1,21 @@
 {
     "name": "p3s/php-ytdlp-wrapper",
     "description": "Robust PHP 8.2 yt-dlp wrapper with Symfony 7 bundle integration",
+    "keywords": [
+        "php",
+        "yt-dlp",
+        "youtube",
+        "symfony",
+        "bundle",
+        "download"
+    ],
+    "homepage": "https://github.com/p3s/php-ytdlp-wrapper",
     "type": "library",
     "license": "MIT",
+    "support": {
+        "issues": "https://github.com/p3s/php-ytdlp-wrapper/issues",
+        "source": "https://github.com/p3s/php-ytdlp-wrapper"
+    },
     "require": {
         "php": "^8.2",
         "symfony/process": "^7.0",
