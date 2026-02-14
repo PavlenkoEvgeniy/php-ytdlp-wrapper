@@ -1,8 +1,8 @@
-# php-ytdlp-wrapper
+# 🎬 php-ytdlp-wrapper
 
 Robust `yt-dlp` wrapper for **PHP 8.2** with a ready-to-use **Symfony 7 bundle**.
 
-## Features
+## ✨ Features
 
 - Safe process execution through `symfony/process`
 - Structured request object (`YtDlpRequest`)
@@ -10,20 +10,20 @@ Robust `yt-dlp` wrapper for **PHP 8.2** with a ready-to-use **Symfony 7 bundle**
 - Strong error model (`BinaryNotFoundException`, `ProcessFailedException`)
 - Symfony 7 service wiring and configurable bundle options
 
-## Requirements
+## 📋 Requirements
 
-- PHP 8.2+
+- PHP 8.4+
 - `yt-dlp` installed on the host machine (binary in `PATH` or custom path)
 
-## Install
+## 📦 Install
 
 ```bash
 composer require p3s/php-ytdlp-wrapper
 ```
 
-## Symfony 7 Bundle Setup
+## 🧩 Symfony 7 Bundle Setup
 
-### 1) Register bundle
+### 1️⃣ Register bundle
 
 If Symfony Flex does not auto-register it, add to `config/bundles.php`:
 
@@ -34,7 +34,7 @@ return [
 ];
 ```
 
-### 2) Configure bundle
+### 2️⃣ Configure bundle
 
 Create `config/packages/yt_dlp.yaml`:
 
@@ -47,7 +47,15 @@ yt_dlp:
   environment: {}
 ```
 
-## Usage in Symfony
+## 🍱 Symfony Flex Recipe
+
+A ready-to-submit Symfony Flex recipe scaffold is available in:
+
+- `flex-recipe/1.0`
+
+To publish it for auto-install support, submit that recipe to `symfony/recipes-contrib`.
+
+## 🚀 Usage in Symfony
 
 Inject `P3s\YtDlp\YtDlpClientInterface` into your service:
 
@@ -79,7 +87,7 @@ final class VideoService
 }
 ```
 
-## Core API
+## 🛠️ Core API
 
 ### `download(string|array $urls, array $options = []): ProcessResult`
 
@@ -97,7 +105,7 @@ Convenience method that returns parsed JSON lines.
 
 Low-level execution with full control over options, flags, and extra arguments.
 
-## `YtDlpRequest`
+## 🧾 `YtDlpRequest`
 
 ```php
 $request = YtDlpRequest::create(
@@ -114,23 +122,23 @@ $request = YtDlpRequest::create(
 );
 ```
 
-## Errors
+## ⚠️ Errors
 
 - `BinaryNotFoundException`: custom binary path does not exist or is not executable
 - `ProcessFailedException`: command returned non-zero exit code
 - `YtDlpException`: base runtime exception
 
-## Notes
+## 📝 Notes
 
 - The wrapper maps options directly to `yt-dlp` CLI flags (`format` -> `--format`).
 - Arrays in option values are emitted as repeated flags.
 - Boolean `true` emits a flag, `false` is ignored.
 
-## License
+## 📄 License
 
 MIT. See `LICENSE`.
 
-## CI
+## ✅ CI
 
 GitHub Actions runs tests on push and pull requests for PHP `8.2`, `8.3`, and `8.4`.
 

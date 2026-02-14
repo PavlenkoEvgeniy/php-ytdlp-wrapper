@@ -1,0 +1,6 @@
+yt_dlp:
+  binary_path: 'yt-dlp'
+  default_arguments: ['--no-warnings']
+  working_directory: ~
+  timeout: 300
+  environment: { }

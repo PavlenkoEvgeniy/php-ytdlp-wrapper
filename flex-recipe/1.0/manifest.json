@@ -1,0 +1,10 @@
+{
+    "bundles": {
+        "P3s\\YtDlp\\YtDlpBundle": [
+            "all"
+        ]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    }
+}
