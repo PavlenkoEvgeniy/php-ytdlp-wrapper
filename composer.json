@@ -10,7 +10,7 @@
         "download"
     ],
     "homepage": "https://github.com/p3s/php-ytdlp-wrapper",
-    "type": "library",
+    "type": "symfony-bundle",
     "license": "MIT",
     "support": {
         "issues": "https://github.com/p3s/php-ytdlp-wrapper/issues",
