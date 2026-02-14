@@ -143,9 +143,46 @@ final class YtDlpClientTest extends TestCase
         $client->run(YtDlpRequest::create('https://example.com/video'));
     }
 
+    public function testRunUsesDefaultBinaryFromConfiguredPath(): void
+    {
+        $binary   = $this->createNamedFakeBinary('yt-dlp');
+        $argsFile = $this->tmpDir . '/default-path-args.txt';
+
+        $client = new YtDlpClient(
+            environment: [
+                'PATH'                 => \dirname($binary) . PATH_SEPARATOR . (\getenv('PATH') ?: ''),
+                'FAKE_YTDLP_ARGS_FILE' => $argsFile,
+                'FAKE_YTDLP_EXIT_CODE' => '0',
+                'FAKE_YTDLP_MODE'      => 'json',
+            ]
+        );
+
+        $result = $client->run(YtDlpRequest::create('https://example.com/default-binary'));
+
+        self::assertTrue($result->isSuccessful());
+        $savedArgs = \file($argsFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+        self::assertContains('https://example.com/default-binary', $savedArgs);
+    }
+
+    public function testRunThrowsForMissingDefaultBinaryOnHost(): void
+    {
+        $client = new YtDlpClient(environment: ['PATH' => $this->tmpDir]);
+
+        $this->expectException(BinaryNotFoundException::class);
+
+        $client->run(YtDlpRequest::create('https://example.com/video'));
+    }
+
     private function createFakeBinary(): string
     {
         $binary = $this->tmpDir . '/fake-yt-dlp.sh';
+
+        return $this->createNamedFakeBinary(\basename($binary));
+    }
+
+    private function createNamedFakeBinary(string $name): string
+    {
+        $binary = $this->tmpDir . '/' . $name;
 
         $script = <<<'BASH'
 #!/usr/bin/env bash

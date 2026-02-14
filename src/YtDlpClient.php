@@ -26,9 +26,9 @@ final class YtDlpClient implements YtDlpClientInterface
     #[\Override]
     public function run(YtDlpRequest $request): ProcessResult
     {
-        $this->assertBinaryIsAvailable();
+        $resolvedBinaryPath = $this->resolveBinaryPath();
 
-        $command = $this->buildCommand($request);
+        $command = $this->buildCommand($request, $resolvedBinaryPath);
         $process = new Process(
             $command,
             $this->workingDirectory,
@@ -76,27 +76,58 @@ final class YtDlpClient implements YtDlpClientInterface
         return $this->run($request);
     }
 
-    private function assertBinaryIsAvailable(): void
+    private function resolveBinaryPath(): string
     {
         if ('yt-dlp' === $this->binaryPath) {
-            return;
+            $resolvedPath = $this->findBinaryInPath($this->binaryPath);
+            if (null === $resolvedPath) {
+                throw BinaryNotFoundException::forPath($this->binaryPath);
+            }
+
+            return $resolvedPath;
         }
 
         if (!\is_file($this->binaryPath) || !\is_executable($this->binaryPath)) {
             throw BinaryNotFoundException::forPath($this->binaryPath);
         }
+
+        return $this->binaryPath;
+    }
+
+    private function findBinaryInPath(string $binary): ?string
+    {
+        $hostPath = \getenv('PATH');
+        $path     = $this->environment['PATH'] ?? (false === $hostPath ? '' : $hostPath);
+
+        if ('' === $path) {
+            return null;
+        }
+
+        foreach (\explode(PATH_SEPARATOR, $path) as $directory) {
+            if ('' === $directory) {
+                continue;
+            }
+
+            $candidate = \rtrim($directory, '/\\') . DIRECTORY_SEPARATOR . $binary;
+
+            if (\is_file($candidate) && \is_executable($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     /**
      * @return list<string>
      */
-    private function buildCommand(YtDlpRequest $request): array
+    private function buildCommand(YtDlpRequest $request, string $binaryPath): array
     {
         if ([] === $request->urls) {
             throw new YtDlpException('At least one URL is required.');
         }
 
-        $command = [$this->binaryPath];
+        $command = [$binaryPath];
 
         foreach ($this->defaultArguments as $argument) {
             $command[] = $argument;
