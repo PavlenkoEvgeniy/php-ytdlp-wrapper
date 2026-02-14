@@ -1,6 +1,6 @@
 # 🎬 php-ytdlp-wrapper
 
-Robust `yt-dlp` wrapper for **PHP 8.2** with a ready-to-use **Symfony 7 bundle**.
+Robust `yt-dlp` wrapper for **PHP 8.4** with a ready-to-use **Symfony 7 bundle**.
 
 ## ✨ Features
 
@@ -89,19 +89,19 @@ final class VideoService
 
 ## 🛠️ Core API
 
-### `download(string|array $urls, array $options = []): ProcessResult`
+### ⬇️ `download(string|array $urls, array $options = []): ProcessResult`
 
 Runs `yt-dlp` for download/processing workflows.
 
-### `rawJson(string|array $urls, array $options = []): ProcessResult`
+### 🧠 `rawJson(string|array $urls, array $options = []): ProcessResult`
 
 Runs metadata mode (`--dump-json --skip-download --no-warnings`) and returns full process output.
 
-### `extractInfo(string|array $urls, array $options = []): array`
+### 🔎 `extractInfo(string|array $urls, array $options = []): array`
 
 Convenience method that returns parsed JSON lines.
 
-### `run(YtDlpRequest $request): ProcessResult`
+### ⚙️ `run(YtDlpRequest $request): ProcessResult`
 
 Low-level execution with full control over options, flags, and extra arguments.
 
@@ -140,6 +140,6 @@ MIT. See `LICENSE`.
 
 ## ✅ CI
 
-GitHub Actions runs tests on push and pull requests for PHP `8.2`, `8.3`, and `8.4`.
+GitHub Actions runs tests on push and pull requests for PHP `8.4` and `8.5`.
 
 Workflow file: `.github/workflows/tests.yml`
