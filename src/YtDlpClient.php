@@ -8,18 +8,21 @@ use P3s\YtDlp\Exception\BinaryNotFoundException;
 use P3s\YtDlp\Exception\YtDlpException;
 use Symfony\Component\Process\Process;
 
-final class YtDlpClient implements YtDlpClientInterface
+final readonly class YtDlpClient implements YtDlpClientInterface
 {
+    public const string DEFAULT_BINARY = 'yt-dlp';
+    public const float DEFAULT_TIMEOUT = 300.0;
+
     /**
-     * @param list<string>          $defaultArguments
-     * @param array<string, string> $environment
+     * @param scalar[]                                $defaultArguments
+     * @param array<string, string|\Stringable|false> $environment
      */
     public function __construct(
-        private readonly string $binaryPath = 'yt-dlp',
-        private readonly array $defaultArguments = [],
-        private readonly ?string $workingDirectory = null,
-        private readonly float $timeout = 300.0,
-        private readonly array $environment = [],
+        private string $binaryPath = self::DEFAULT_BINARY,
+        private array $defaultArguments = [],
+        private ?string $workingDirectory = null,
+        private float $timeout = self::DEFAULT_TIMEOUT,
+        private array $environment = [],
     ) {
     }
 
@@ -27,24 +30,26 @@ final class YtDlpClient implements YtDlpClientInterface
     public function run(YtDlpRequest $request): ProcessResult
     {
         $resolvedBinaryPath = $this->resolveBinaryPath();
+        $command            = $this->buildCommand($request, $resolvedBinaryPath);
 
-        $command = $this->buildCommand($request, $resolvedBinaryPath);
         $process = new Process(
             $command,
             $this->workingDirectory,
             $this->environment,
             null,
-            $this->timeout
+            $this->timeout,
         );
 
         $process->run();
 
+        $stdout = $process->getOutput();
+
         return new ProcessResult(
             command: $command,
             exitCode: $process->getExitCode() ?? 1,
-            stdout: $process->getOutput(),
+            stdout: $stdout,
             stderr: $process->getErrorOutput(),
-            jsonLines: $this->extractJsonObjects($process->getOutput())
+            jsonLines: $this->extractJsonObjects($stdout),
         );
     }
 
@@ -70,7 +75,7 @@ final class YtDlpClient implements YtDlpClientInterface
         $request = YtDlpRequest::create(
             urls: $urls,
             options: $options,
-            flags: ['dump-json', 'skip-download', 'no-warnings']
+            flags: ['dump-json', 'skip-download', 'no-warnings'],
         );
 
         return $this->run($request);
@@ -78,8 +83,9 @@ final class YtDlpClient implements YtDlpClientInterface
 
     private function resolveBinaryPath(): string
     {
-        if ('yt-dlp' === $this->binaryPath) {
+        if (self::DEFAULT_BINARY === $this->binaryPath) {
             $resolvedPath = $this->findBinaryInPath($this->binaryPath);
+
             if (null === $resolvedPath) {
                 throw BinaryNotFoundException::forPath($this->binaryPath);
             }
@@ -97,7 +103,7 @@ final class YtDlpClient implements YtDlpClientInterface
     private function findBinaryInPath(string $binary): ?string
     {
         $hostPath = \getenv('PATH');
-        $path     = $this->environment['PATH'] ?? (false === $hostPath ? '' : $hostPath);
+        $path     = (string) ($this->environment['PATH'] ?? (false === $hostPath ? '' : $hostPath));
 
         if ('' === $path) {
             return null;
@@ -108,7 +114,7 @@ final class YtDlpClient implements YtDlpClientInterface
                 continue;
             }
 
-            $candidate = \rtrim($directory, '/\\') . DIRECTORY_SEPARATOR . $binary;
+            $candidate = \sprintf('%s%s%s', \rtrim($directory, '/\\'), DIRECTORY_SEPARATOR, $binary);
 
             if (\is_file($candidate) && \is_executable($candidate)) {
                 return $candidate;
@@ -119,7 +125,7 @@ final class YtDlpClient implements YtDlpClientInterface
     }
 
     /**
-     * @return list<string>
+     * @return string[]
      */
     private function buildCommand(YtDlpRequest $request, string $binaryPath): array
     {
@@ -129,44 +135,16 @@ final class YtDlpClient implements YtDlpClientInterface
 
         $command = [$binaryPath];
 
-        foreach ($this->defaultArguments as $argument) {
-            $command[] = $argument;
-        }
+        $this->appendDefaultArguments($command, $this->defaultArguments);
+        $this->appendFlags($command, $request->flags);
+        $this->appendOptions($command, $request->options);
+        $this->appendExtraArguments($command, $request->extraArguments);
 
-        foreach ($request->flags as $flag) {
-            $command[] = $this->normalizeOptionName($flag);
-        }
+        $extraArguments    = $request->extraArguments;
+        $lastExtraArgument = \end($extraArguments);
 
-        foreach ($request->options as $option => $value) {
-            $optionName = $this->normalizeOptionName($option);
-
-            if (null === $value) {
-                continue;
-            }
-
-            if (\is_array($value)) {
-                foreach ($value as $item) {
-                    $command[] = $optionName;
-                    $command[] = (string) $item;
-                }
-
-                continue;
-            }
-
-            if (\is_bool($value)) {
-                if ($value) {
-                    $command[] = $optionName;
-                }
-
-                continue;
-            }
-
-            $command[] = $optionName;
-            $command[] = (string) $value;
-        }
-
-        foreach ($request->extraArguments as $argument) {
-            $command[] = $argument;
+        if ('--' !== $lastExtraArgument) {
+            $command[] = '--';
         }
 
         foreach ($request->urls as $url) {
@@ -176,19 +154,97 @@ final class YtDlpClient implements YtDlpClientInterface
         return $command;
     }
 
-    private function normalizeOptionName(string $option): string
+    /**
+     * @param string[] $command
+     * @param scalar[] $defaultArguments
+     */
+    private function appendDefaultArguments(array &$command, array $defaultArguments): void
     {
-        $trimmed = \ltrim($option);
-
-        if (\str_starts_with($trimmed, '--') || \str_starts_with($trimmed, '-')) {
-            return $trimmed;
+        foreach ($defaultArguments as $argument) {
+            $command[] = (string) $argument;
         }
-
-        return '--' . \ltrim($trimmed, '-');
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @param string[] $command
+     * @param string[] $flags
+     */
+    private function appendFlags(array &$command, array $flags): void
+    {
+        foreach ($flags as $flag) {
+            $command[] = $this->normalizeOptionName($flag);
+        }
+    }
+
+    /**
+     * @param string[]                            $command
+     * @param array<string, scalar|scalar[]|null> $options
+     */
+    private function appendOptions(array &$command, array $options): void
+    {
+        foreach ($options as $option => $value) {
+            $this->appendOptionValue($command, $this->normalizeOptionName($option), $value);
+        }
+    }
+
+    /**
+     * @param string[]                             $command
+     * @param array<array-key, scalar>|scalar|null $value
+     */
+    private function appendOptionValue(
+        array &$command,
+        string $optionName,
+        int|float|string|bool|array|null $value,
+    ): void {
+        if (null === $value) {
+            return;
+        }
+
+        if (\is_array($value)) {
+            foreach ($value as $item) {
+                $command[] = $optionName;
+                $command[] = (string) $item;
+            }
+
+            return;
+        }
+
+        if (\is_bool($value)) {
+            if ($value) {
+                $command[] = $optionName;
+            }
+
+            return;
+        }
+
+        $command[] = $optionName;
+        $command[] = (string) $value;
+    }
+
+    /**
+     * @param string[] $command
+     * @param string[] $extraArguments
+     */
+    private function appendExtraArguments(array &$command, array $extraArguments): void
+    {
+        foreach ($extraArguments as $argument) {
+            $command[] = $argument;
+        }
+    }
+
+    private function normalizeOptionName(string $option): string
+    {
+        $trimmed = \trim($option);
+
+        if (\str_starts_with($trimmed, '-')) {
+            return $trimmed;
+        }
+
+        return \sprintf('--%s', $trimmed);
+    }
+
+    /**
+     * @return array<array-key, mixed>[]
      */
     private function extractJsonObjects(string $stdout): array
     {
@@ -202,7 +258,7 @@ final class YtDlpClient implements YtDlpClientInterface
 
             $decoded = \json_decode($line, true);
 
-            if (JSON_ERROR_NONE === \json_last_error() && \is_array($decoded)) {
+            if (\is_array($decoded)) {
                 $json[] = $decoded;
             }
         }

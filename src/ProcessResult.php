@@ -6,18 +6,18 @@ namespace P3s\YtDlp;
 
 use P3s\YtDlp\Exception\ProcessFailedException;
 
-final class ProcessResult
+final readonly class ProcessResult
 {
     /**
-     * @param list<string>               $command
-     * @param list<array<string, mixed>> $jsonLines
+     * @param string[]                  $command
+     * @param array<array-key, mixed>[] $jsonLines
      */
     public function __construct(
-        public readonly array $command,
-        public readonly int $exitCode,
-        public readonly string $stdout,
-        public readonly string $stderr,
-        public readonly array $jsonLines = [],
+        public array $command,
+        public int $exitCode,
+        public string $stdout,
+        public string $stderr,
+        public array $jsonLines = [],
     ) {
     }
 

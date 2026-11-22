@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use PhpCsFixer\Finder;
 use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
 
-return (new Config())
+return new Config()
     ->setRules([
         '@Symfony' => true,
         'declare_strict_types' => true,
@@ -25,8 +25,8 @@ return (new Config())
         ],
     ])
     ->setFinder(
-        (new Finder())
-            ->in(['src', 'tests'])
+        new Finder()
+            ->in(['src', 'tests', 'config'])
             ->exclude(['vendor'])
     )
     ->setLineEnding("\n")

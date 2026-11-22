@@ -8,9 +8,11 @@
     findUnusedBaselineEntry="true"
     findUnusedCode="false"
     phpVersion="8.4"
+    runTaintAnalysis="false"
 >
     <projectFiles>
         <directory name="src" />
+        <directory name="config" />
         <ignoreFiles>
             <directory name="vendor" />
         </ignoreFiles>

@@ -5,13 +5,19 @@ on:
     branches: ["**"]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  phpunit:
+  tests:
+    name: PHP ${{ matrix.php-version }} (${{ matrix.dependencies }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.4', '8.5']
+        php-version: ['8.4', '8.5', '8.6']
+        dependencies: ['lowest', 'highest']
 
     steps:
       - name: Checkout
@@ -27,16 +33,110 @@ jobs:
       - name: Validate composer files
         run: composer validate --strict
 
-      - name: Cache vendor directory
+      - name: Cache composer archives
         uses: actions/cache@v4
         with:
-          path: vendor
-          key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ matrix.php-version }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-php-${{ matrix.php-version }}-
+            ${{ runner.os }}-composer-${{ matrix.php-version }}-${{ matrix.dependencies }}-
 
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Install lowest dependencies
+        if: matrix.dependencies == 'lowest'
+        run: composer update --prefer-lowest --prefer-stable --prefer-dist --no-interaction --no-progress
+
+      - name: Install highest dependencies
+        if: matrix.dependencies == 'highest'
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Audit dependencies
+        run: composer audit
 
       - name: Run tests
         run: composer test
+
+  static-analysis:
+    name: Static analysis (PHP 8.6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.6'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install highest dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=256M
+
+      - name: Run Psalm
+        run: vendor/bin/psalm --config=psalm.xml.dist
+
+  lint:
+    name: Lint (PHP 8.5)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install highest dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Check code style
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
+
+      - name: Install aspell
+        run: sudo apt-get update && sudo apt-get install -y aspell aspell-en
+
+      - name: Check spelling
+        run: vendor/bin/peck --config=peck.json
+
+  coverage:
+    name: Coverage (PHP 8.6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.6'
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Install highest dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Collect coverage
+        run: XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-clover=coverage.xml --colors=never
+
+      - name: Enforce 100% line coverage
+        run: |
+          php -r '
+          $coverage = simplexml_load_file("coverage.xml");
+          $metrics = $coverage->project->metrics;
+          if ((int) $metrics["coveredstatements"] !== (int) $metrics["statements"]) {
+              fwrite(STDERR, "Line coverage is below 100%\n");
+              exit(1);
+          }
+          '

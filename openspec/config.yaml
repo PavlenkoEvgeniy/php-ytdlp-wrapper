@@ -1,0 +1,53 @@
+schema: spec-driven
+
+context: |
+  php-ytdlp-wrapper is a reusable PHP library and Symfony bundle (not an
+  application) that wraps the yt-dlp CLI through symfony/process.
+
+  Stack: PHP 8.4-8.6; Symfony 7.4 and 8.x (both supported). This repository
+  has no Doctrine, controllers, Twig templates, console commands, or messenger
+  transport; application-only conventions do not apply.
+
+  Compatibility policy: the bundle is used by production projects. Public
+  class and method signatures, configuration keys and defaults, option
+  semantics, and behavior for valid input MUST remain backward compatible
+  within the 1.x line. Additive changes and security fixes for malicious input
+  are allowed; breaking changes are deferred to 2.0.
+
+  Code style: the user's rulebook lives outside this repository at
+  $TASKS_DIR/_code-style (README.md, comments.md, php.md, php/*.md). OpenSpec
+  specs describe observable behavior only. Code-style compliance is tracked in
+  design.md, tasks.md, and the session journal, not in the capability specs.
+
+  Project terms live in CONTEXT.md. User-facing documentation: README.md.
+  Tests: `make test` (PHPUnit). Static checks: `make lint` (php-cs-fixer,
+  PHPStan, Psalm, peck). Local PHP 8.6 is available. The OpenSpec CLI is
+  pinned to @fission-ai/openspec@1.16.0 through npx.
+
+rules:
+  proposal:
+    - State explicitly what is out of scope.
+    - State the backward-compatibility impact and whether the change is additive.
+    - Link the task journal entry instead of duplicating session notes.
+  specs:
+    - Write in English.
+    - Every requirement must be testable; use WHEN/THEN scenarios.
+    - Describe observable behavior only; no file names, class names, or PHP-style rules.
+    - Use terms from CONTEXT.md.
+  design:
+    - Record library-specific exceptions to $TASKS_DIR/_code-style with the reason.
+    - List behavior changes deliberately deferred to 2.0.
+    - Record the OpenSpec initialization decision and the CI matrix rationale.
+  tasks:
+    - One verifiable step per task; include the validation/test step.
+    - Group tasks by concern, not by file.
+
+operations:
+  apply:
+    guidance:
+      - Run `make lint` and `make test` before reporting completion.
+      - Do not change public API, configuration keys, defaults, or valid-input behavior.
+      - Run `composer update`, not `composer install`, because the library lock file is no longer tracked.
+  archive:
+    guidance:
+      - Run `npx --yes @fission-ai/openspec@1.16.0 validate --all --strict` before archiving.

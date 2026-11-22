@@ -11,22 +11,23 @@ use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 
 final class YtDlpExtension extends Extension
 {
-    /**
-     * @param array<mixed> $configs
-     */
     #[\Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();
-        $config        = $this->processConfiguration($configuration, $configs);
 
-        $container->setParameter('yt_dlp.binary_path', $config['binary_path']);
-        $container->setParameter('yt_dlp.default_arguments', $config['default_arguments']);
-        $container->setParameter('yt_dlp.working_directory', $config['working_directory']);
-        $container->setParameter('yt_dlp.timeout', $config['timeout']);
-        $container->setParameter('yt_dlp.environment', $config['environment']);
+        $processedConfiguration = $this->processConfiguration($configuration, $configs);
 
-        $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
-        $loader->load('services.php');
+        $container->setParameter('yt_dlp.binary_path', $processedConfiguration['binary_path']);
+        $container->setParameter('yt_dlp.default_arguments', $processedConfiguration['default_arguments']);
+        $container->setParameter('yt_dlp.working_directory', $processedConfiguration['working_directory']);
+        $container->setParameter('yt_dlp.timeout', $processedConfiguration['timeout']);
+        $container->setParameter('yt_dlp.environment', $processedConfiguration['environment']);
+
+        $configDirectory = \sprintf('%s/../../config', __DIR__);
+
+        new PhpFileLoader($container, new FileLocator($configDirectory))
+            ->load('services.php')
+        ;
     }
 }

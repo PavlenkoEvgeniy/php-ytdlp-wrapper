@@ -1,6 +1,6 @@
 # 🎬 php-ytdlp-wrapper
 
-Robust `yt-dlp` wrapper for **PHP 8.4** with a ready-to-use **Symfony 7 bundle**.
+Robust `yt-dlp` wrapper for **PHP 8.4–8.6** with a ready-to-use **Symfony 7.4/8 bundle**.
 
 ## ✨ Features
 
@@ -8,11 +8,12 @@ Robust `yt-dlp` wrapper for **PHP 8.4** with a ready-to-use **Symfony 7 bundle**
 - Structured request object (`YtDlpRequest`)
 - Raw execution + JSON extraction helpers
 - Strong error model (`BinaryNotFoundException`, `ProcessFailedException`)
-- Symfony 7 service wiring and configurable bundle options
+- Symfony 7.4/8 service wiring and configurable bundle options
 
 ## 📋 Requirements
 
-- PHP 8.4+
+- PHP 8.4, 8.5, or 8.6 at runtime; PHP 8.4.3+ for development (Psalm 7.16)
+- Symfony 7.4 or 8.x
 - `yt-dlp` installed on the host machine (binary in `PATH` or custom path)
 
 ## 📦 Install
@@ -21,7 +22,7 @@ Robust `yt-dlp` wrapper for **PHP 8.4** with a ready-to-use **Symfony 7 bundle**
 composer require p3sdev/php-ytdlp-wrapper
 ```
 
-## 🧩 Symfony 7 Bundle Setup
+## 🧩 Symfony 7.4/8 Bundle Setup
 
 ### 1️⃣ Register bundle
 
@@ -47,6 +48,8 @@ yt_dlp:
   environment: {}
 ```
 
+`timeout: 0` disables the process timeout (Symfony Process semantics); negative values are rejected.
+
 ## 🍱 Symfony Flex Recipe
 
 A ready-to-submit Symfony Flex recipe scaffold is available in:
@@ -70,13 +73,13 @@ use P3s\YtDlp\YtDlpClientInterface;
 
 final class VideoService
 {
-    public function __construct(private readonly YtDlpClientInterface $ytDlp)
+    public function __construct(private readonly YtDlpClientInterface $ytDlpClient)
     {
     }
 
     public function download(string $url): void
     {
-        $result = $this->ytDlp->download($url, [
+        $result = $this->ytDlpClient->download($url, [
             'format' => 'bv*+ba/b',
             'output' => '%(title)s.%(ext)s',
             'paths' => '/tmp/videos',
@@ -96,6 +99,8 @@ Runs `yt-dlp` for download/processing workflows.
 ### 🧠 `rawJson(string|array $urls, array $options = []): ProcessResult`
 
 Runs metadata mode (`--dump-json --skip-download --no-warnings`) and returns full process output.
+With the default bundle configuration, `--no-warnings` is also present in `default_arguments`, so it
+can appear twice; yt-dlp accepts duplicate flags.
 
 ### 🔎 `extractInfo(string|array $urls, array $options = []): array`
 
@@ -118,21 +123,34 @@ $request = YtDlpRequest::create(
         'print' => ['id', 'title'],
     ],
     flags: ['no-progress'],
-    extraArguments: ['--'],
 );
 ```
 
+The wrapper inserts the `--` end-of-options marker before URLs. If the last extra argument is already
+`--`, the marker is not duplicated.
+
+## 🔒 URL safety
+
+The wrapper always places the `--` end-of-options marker before URLs, so a URL that starts with `-`
+is treated as positional input, not as a `yt-dlp` option. Option keys and `extraArguments` are trusted
+input: do not pass untrusted user data through them.
+
 ## ⚠️ Errors
 
-- `BinaryNotFoundException`: custom binary path does not exist or is not executable
-- `ProcessFailedException`: command returned non-zero exit code
+- `BinaryNotFoundException`: the configured binary path does not exist or is not executable, or the
+  default `yt-dlp` binary is not found in the search path
+- `ProcessFailedException`: raised by `extractInfo()` or by `requireSuccessful()` when the result is
+  unsuccessful; `run()`, `download()`, and `rawJson()` return a failed result instead of throwing
 - `YtDlpException`: base runtime exception
 
 ## 📝 Notes
 
 - The wrapper maps options directly to `yt-dlp` CLI flags (`format` -> `--format`).
 - Arrays in option values are emitted as repeated flags.
-- Boolean `true` emits a flag, `false` is ignored.
+- Boolean `true` emits a flag, `false` and `null` are ignored.
+- URLs are separated from options by `--`.
+- Environment values follow Symfony Process semantics: `false` omits a variable, `null` makes it
+  empty, and `Stringable` values are stringified.
 
 ## 📄 License
 
@@ -140,6 +158,9 @@ MIT. See `LICENSE`.
 
 ## ✅ CI
 
-GitHub Actions runs tests on push and pull requests for PHP `8.4` and `8.5`.
+GitHub Actions runs the test suite on push and pull requests for PHP `8.4`, `8.5`, and `8.6`, each
+with the lowest and highest allowed dependencies (Symfony 7.4 and 8.x). Separate jobs run static
+analysis on PHP 8.6, code style plus spelling checks on PHP 8.5, and a coverage gate that requires
+100% line coverage.
 
 Workflow file: `.github/workflows/tests.yml`
