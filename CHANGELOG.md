@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-22
+
+### Changed
+
+- Rewrote the README with a clearer structure, configuration and API tables, and more usage
+  examples for downloads, metadata, low-level requests, and error handling.
+
 ## [1.1.0] - 2026-11-22
 
 ### Added
@@ -40,5 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   URL-shaped token from being parsed by yt-dlp as a command option. Option keys and extra arguments
   remain trusted input.
 
-[Unreleased]: https://github.com/p3s/php-ytdlp-wrapper/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/p3s/php-ytdlp-wrapper/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/p3s/php-ytdlp-wrapper/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/p3s/php-ytdlp-wrapper/compare/v1.0.4...v1.1.0
