@@ -9,22 +9,22 @@ interface YtDlpClientInterface
     public function run(YtDlpRequest $request): ProcessResult;
 
     /**
-     * @param string|list<string>                     $urls
-     * @param array<string, scalar|list<scalar>|null> $options
+     * @param string|string[]                     $urls
+     * @param array<string, scalar|scalar[]|null> $options
      */
     public function download(string|array $urls, array $options = []): ProcessResult;
 
     /**
-     * @param string|list<string>                     $urls
-     * @param array<string, scalar|list<scalar>|null> $options
+     * @param string|string[]                     $urls
+     * @param array<string, scalar|scalar[]|null> $options
      *
-     * @return list<array<string, mixed>>
+     * @return array<array-key, mixed>[]
      */
     public function extractInfo(string|array $urls, array $options = []): array;
 
     /**
-     * @param string|list<string>                     $urls
-     * @param array<string, scalar|list<scalar>|null> $options
+     * @param string|string[]                     $urls
+     * @param array<string, scalar|scalar[]|null> $options
      */
     public function rawJson(string|array $urls, array $options = []): ProcessResult;
 }

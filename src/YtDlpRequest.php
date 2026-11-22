@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace P3s\YtDlp;
 
-final class YtDlpRequest
+final readonly class YtDlpRequest
 {
     /**
-     * @param list<string>                            $urls
-     * @param array<string, scalar|list<scalar>|null> $options
-     * @param list<string>                            $flags
-     * @param list<string>                            $extraArguments
+     * @param string[]                            $urls
+     * @param array<string, scalar|scalar[]|null> $options
+     * @param string[]                            $flags
+     * @param string[]                            $extraArguments
      */
     public function __construct(
-        public readonly array $urls,
-        public readonly array $options = [],
-        public readonly array $flags = [],
-        public readonly array $extraArguments = [],
+        public array $urls,
+        public array $options = [],
+        public array $flags = [],
+        public array $extraArguments = [],
     ) {
     }
 
     /**
-     * @param string|list<string>                     $urls
-     * @param array<string, scalar|list<scalar>|null> $options
-     * @param list<string>                            $flags
-     * @param list<string>                            $extraArguments
+     * @param string|string[]                     $urls
+     * @param array<string, scalar|scalar[]|null> $options
+     * @param string[]                            $flags
+     * @param string[]                            $extraArguments
      */
     public static function create(
         string|array $urls,
@@ -36,7 +36,7 @@ final class YtDlpRequest
             \is_array($urls) ? $urls : [$urls],
             $options,
             $flags,
-            $extraArguments
+            $extraArguments,
         );
     }
 }

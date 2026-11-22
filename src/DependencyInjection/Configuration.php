@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace P3s\YtDlp\DependencyInjection;
 
+use P3s\YtDlp\YtDlpClient;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -17,7 +18,7 @@ final class Configuration implements ConfigurationInterface
         $treeBuilder->getRootNode()
             ->children()
                 ->scalarNode('binary_path')
-                    ->defaultValue('yt-dlp')
+                    ->defaultValue(YtDlpClient::DEFAULT_BINARY)
                     ->cannotBeEmpty()
                 ->end()
                 ->arrayNode('default_arguments')
@@ -29,13 +30,14 @@ final class Configuration implements ConfigurationInterface
                 ->end()
                 ->floatNode('timeout')
                     ->min(0)
-                    ->defaultValue(300.0)
+                    ->defaultValue(YtDlpClient::DEFAULT_TIMEOUT)
                 ->end()
                 ->arrayNode('environment')
                     ->scalarPrototype()->end()
                     ->defaultValue([])
                 ->end()
-            ->end();
+            ->end()
+        ;
 
         return $treeBuilder;
     }

@@ -4,7 +4,7 @@ This directory contains a ready-to-submit recipe scaffold for Symfony Flex.
 
 ## Included version
 
-- `1.0` (for package versions `1.0.*`)
+- `1.0` (for package versions `1.x`)
 
 ## Files
 

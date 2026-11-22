@@ -3,6 +3,9 @@
     "ignore": {
         "words": [
             "php",
+            "openspec",
+            "opsx",
+            "changelog",
             "makefile",
             "knp",
             "paginator",

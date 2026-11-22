@@ -16,7 +16,7 @@ final class ProcessFailedException extends YtDlpException
             $message = \sprintf(
                 'yt-dlp command failed with exit code %d: %s',
                 $result->exitCode,
-                \implode(' ', $result->command)
+                \implode(' ', $result->command),
             );
         }
 

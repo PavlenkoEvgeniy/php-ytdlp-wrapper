@@ -12,14 +12,13 @@ final class YtDlpBundle extends Bundle
     #[\Override]
     public function getContainerExtension(): YtDlpExtension
     {
-        if (null === $this->extension) {
-            $this->extension = new YtDlpExtension();
+        $containerExtension = $this->extension;
+
+        if (!$containerExtension instanceof YtDlpExtension) {
+            $containerExtension = new YtDlpExtension();
+            $this->extension    = $containerExtension;
         }
 
-        if (!$this->extension instanceof YtDlpExtension) {
-            throw new \LogicException('Invalid container extension instance.');
-        }
-
-        return $this->extension;
+        return $containerExtension;
     }
 }
